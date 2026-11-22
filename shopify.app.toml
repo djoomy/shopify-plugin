@@ -4,14 +4,18 @@ name = "djomy-api"
 handle = "djomy-mobile-money"
 embedded = true
 client_id = "7f5ed09da3fb12b0b2b2fe38eddc04e1"
-application_url = "https://shopify.dev/apps/default-app-home"
+application_url = "https://shopify-plugin.ousmanebellasarl.com"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "write_orders,read_orders"
 
 [auth]
-redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+redirect_urls = [
+  "https://shopify-plugin.ousmanebellasarl.com/auth/callback",
+  "https://shopify-plugin.ousmanebellasarl.com/auth/shopify/callback",
+  "https://shopify-plugin.ousmanebellasarl.com/api/auth/callback"
+]
 
 [webhooks]
 api_version = "2026-10"

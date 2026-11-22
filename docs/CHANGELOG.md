@@ -1,5 +1,23 @@
 # Journal des modifications
 
+## 2026-11-22 — Mise en production sur le VPS
+
+### Ajouté
+
+- Migration Prisma initiale `0_init`.
+- `Dockerfile` et `docker-compose.yml` (app + PostgreSQL).
+- Déploiement continu GitHub Actions (`.github/workflows/ci-cd.yml`).
+- Site Caddy `deploy/caddy/djomy-shopify.caddy`.
+
+### Modifié
+
+- `shopify.app.toml` : URL de l'app et URL de redirection sur
+  `shopify-plugin.ousmanebellasarl.com`.
+
+### Retiré
+
+- `render.yaml` : l'hébergement Render est abandonné (décision D-010).
+
 ## 2026-08-24 — Vérification contre le bac à sable Djomy
 
 ### Ajouté

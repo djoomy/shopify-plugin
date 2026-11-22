@@ -111,3 +111,33 @@ Deux garde-fous, chacun porté par une contrainte d'unicité en base :
 Exigé par Shopify pour le canal offsite (phase P4). À configurer sur
 l'hébergement retenu avec le certificat CA Shopify. Non requis pour le canal
 manuel.
+
+## Hébergement et déploiement
+
+Production : `https://shopify-plugin.ousmanebellasarl.com`, sur un VPS partagé
+avec d'autres applications.
+
+| Élément | Emplacement |
+|---|---|
+| App + PostgreSQL | `docker-compose.yml`, projet `djomy-shopify`, dossier `/opt/djomy-shopify` |
+| Secrets | `/opt/djomy-shopify/.env`, présent uniquement sur le serveur |
+| Proxy HTTPS | Caddy partagé du serveur ; site décrit dans `deploy/caddy/djomy-shopify.caddy` |
+| Lien proxy → app | réseau Docker externe `edge`, alias `djomy-shopify`, port 3000 |
+| DNS | enregistrement A du sous-domaine, géré chez le registraire du domaine |
+
+Le port `127.0.0.1:3100` du serveur ne sert qu'au contrôle de santé du
+déploiement. La base n'est jointe que par l'app, sous l'alias `djomy-db`.
+
+Déploiement continu (`.github/workflows/ci-cd.yml`) : typecheck, tests et
+build à chaque push ; à chaque push sur `main`, envoi du code par rsync puis
+`docker compose up -d --build`. Les migrations Prisma s'appliquent au
+démarrage du conteneur.
+
+Deux opérations restent manuelles :
+
+- **Site Caddy** : copier `deploy/caddy/djomy-shopify.caddy` dans le dossier
+  des sites du Caddy partagé, valider, puis recharger. À refaire seulement si
+  ce fichier change.
+- **Configuration Shopify** : `npm run deploy` après toute modification de
+  `shopify.app.toml`.
+

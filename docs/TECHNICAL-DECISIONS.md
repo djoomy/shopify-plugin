@@ -93,3 +93,24 @@ d'un double débit chez un acheteur n'est pas une simplification acceptable.
 Un jeton périmé n'est pas une panne du service. La ré-authentification ne
 consomme donc pas une des trois tentatives réservées aux erreurs
 transitoires.
+
+## D-010 — Hébergement sur le VPS existant, derrière le Caddy partagé
+
+**Date :** 2026-11-22 · **Statut :** actée
+
+L'app tourne en Docker sur le VPS qui héberge déjà d'autres applications, et
+s'expose par le proxy Caddy en place, via un fichier de site importé et le
+réseau Docker `edge`. Aucun fichier des autres applications n'est modifié.
+
+**Écarté :**
+
+- Render (offre gratuite) : mise en veille incompatible avec le délai de 5 s
+  des webhooks Shopify, base supprimée après 30 jours.
+- Hébergement mutualisé : dossier d'application dans la racine web publique,
+  arrêt de l'app après inactivité.
+- Un second proxy dédié : les ports 80 et 443 sont déjà pris par Caddy.
+
+**Conséquence :** l'exposition HTTPS dépend du Caddy d'une autre application.
+Sa réinstallation sans le dossier des sites importés couperait l'accès à
+l'app.
+
