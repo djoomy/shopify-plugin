@@ -4,7 +4,7 @@
 # le Caddy partagé (/opt/fleethub/deploy/sites/), puis recharger Caddy.
 # L'app est jointe par le réseau Docker `edge` (cf. docker-compose.yml).
 
-shopify-plugin.ousmanebellasarl.com {
+djomy.ousmanebellasarl.com {
 	encode gzip
 	reverse_proxy djomy-shopify:3000
 }

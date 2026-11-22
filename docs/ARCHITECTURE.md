@@ -114,7 +114,7 @@ manuel.
 
 ## Hébergement et déploiement
 
-Production : `https://shopify-plugin.ousmanebellasarl.com`, sur un VPS partagé
+Production : `https://djomy.ousmanebellasarl.com`, sur un VPS partagé
 avec d'autres applications.
 
 | Élément | Emplacement |

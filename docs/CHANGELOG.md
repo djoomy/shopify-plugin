@@ -12,7 +12,7 @@
 ### Modifié
 
 - `shopify.app.toml` : URL de l'app et URL de redirection sur
-  `shopify-plugin.ousmanebellasarl.com`.
+  `djomy.ousmanebellasarl.com`.
 
 ### Retiré
 
