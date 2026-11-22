@@ -1,0 +1,121 @@
+# Vérification à chaque push et pull request ; déploiement sur le VPS à
+# chaque push sur `main`, seulement si la vérification passe.
+#
+# Secrets à créer dans GitHub (Settings > Secrets and variables > Actions) :
+#   VPS_HOST         adresse du serveur
+#   VPS_USER         utilisateur SSH de déploiement (membre du groupe docker)
+#   VPS_SSH_KEY      clé privée dédiée au déploiement
+#   VPS_KNOWN_HOSTS  sortie de `ssh-keyscan -t ed25519 <adresse>`
+#   VPS_PORT         (optionnel) port SSH, 22 par défaut
+#   VPS_PATH         (optionnel) dossier de l'app, /opt/djomy-shopify par défaut
+#
+# Le `.env` de production vit uniquement sur le serveur : le déploiement ne
+# le lit pas, ne l'envoie pas et ne le supprime pas.
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verification:
+    name: Typecheck, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  deploiement:
+    name: Déploiement sur le VPS
+    needs: verification
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    # Un seul déploiement à la fois ; un déploiement en cours va à son terme.
+    concurrency:
+      group: deploiement-production
+      cancel-in-progress: false
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      VPS_USER: ${{ secrets.VPS_USER }}
+      VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+      VPS_PATH: ${{ secrets.VPS_PATH || '/opt/djomy-shopify' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Préparer SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_USER" ] || [ -z "$VPS_SSH_KEY" ] || [ -z "$VPS_KNOWN_HOSTS" ]; then
+            echo "::error::Secrets de déploiement manquants (VPS_HOST, VPS_USER, VPS_SSH_KEY, VPS_KNOWN_HOSTS)."
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploiement
+          chmod 600 ~/.ssh/deploiement
+          # L'empreinte du serveur est épinglée : pas de confiance aveugle.
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          {
+            echo "Host vps"
+            echo "  HostName $VPS_HOST"
+            echo "  User $VPS_USER"
+            echo "  Port $VPS_PORT"
+            echo "  IdentityFile ~/.ssh/deploiement"
+            echo "  IdentitiesOnly yes"
+            echo "  StrictHostKeyChecking yes"
+          } > ~/.ssh/config
+
+      - name: Vérifier le .env du serveur
+        run: |
+          ssh vps "test -f '$VPS_PATH/.env'" || {
+            echo "::error::$VPS_PATH/.env est absent du serveur. Le créer avant le premier déploiement."
+            exit 1
+          }
+
+      - name: Envoyer le code
+        # Les fichiers exclus (dont le .env du serveur) ne sont ni envoyés
+        # ni supprimés par --delete.
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='node_modules/' \
+            --exclude='build/' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            ./ "vps:$VPS_PATH/"
+
+      - name: Construire et démarrer
+        run: ssh vps "cd '$VPS_PATH' && docker compose up -d --build --remove-orphans"
+
+      - name: Vérifier que l'app répond
+        run: |
+          ssh vps "cd '$VPS_PATH' && \
+            port=\$(grep -E '^APP_PORT=' .env | tail -n1 | cut -d= -f2); \
+            curl -fsS -o /dev/null --retry 30 --retry-delay 2 --retry-all-errors \
+              \"http://127.0.0.1:\${port:-3100}/\"" || {
+            echo "::error::L'app ne répond pas après le déploiement."
+            ssh vps "cd '$VPS_PATH' && docker compose ps && docker compose logs --tail 40 app"
+            exit 1
+          }
+
+      - name: Nettoyer les anciennes images
+        run: ssh vps "docker image prune -f"
