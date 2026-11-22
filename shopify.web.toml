@@ -1,0 +1,11 @@
+# Indique au CLI Shopify comment démarrer le serveur Remix pendant
+# `npm run dev`. Sans ce fichier, aucun tunnel n'est ouvert.
+
+name = "remix"
+roles = ["frontend", "backend"]
+webhooks_path = "/webhooks"
+
+[commands]
+predev = "npx prisma generate"
+# `--env-file` charge le .env sans écraser les variables injectées par le CLI.
+dev = "node --env-file=.env node_modules/@remix-run/dev/dist/cli.js vite:dev"

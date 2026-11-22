@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Sessions Shopify — schéma imposé par @shopify/shopify-app-session-storage-prisma.
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+/// Identifiants Djomy d'une boutique. Le secret est chiffré au repos.
+model DjomyCredential {
+  shop                String   @id
+  clientId            String
+  /// Chiffré via app/lib/crypto.server.ts — jamais stocké en clair.
+  clientSecretChiffre String
+  baseUrl             String   @default("https://sandbox-api.djomy.africa")
+  countryCode         String   @default("GN")
+  /// Méthodes proposées sur le portail Djomy, séparées par des virgules.
+  methodesAutorisees  String   @default("OM,MOMO,KULU,CARD")
+  testMode            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+/// Un paiement Djomy rattaché à une commande ou à une session de paiement Shopify.
+model DjomyPayment {
+  id String @id @default(cuid())
+
+  shop    String
+  /// "manual" (méthode de paiement manuelle) ou "offsite" (payments extension).
+  channel String
+
+  shopifyOrderId    String?
+  /// GID de la session de paiement Shopify, pour le canal offsite.
+  shopifySessionGid String? @unique
+
+  /// Référence marchand : clé d'idempotence côté Djomy comme côté app.
+  merchantPaymentReference String  @unique
+  djomyTransactionId       String? @unique
+
+  /// Montant attendu, dans la devise de la commande Shopify.
+  amount        Decimal @db.Decimal(20, 4)
+  /// Code ISO-4217 côté Shopify (GNF, XOF, USD, SLE).
+  currency      String
+  /// Libellé de devise côté Djomy (GNF, FCFA, Dollar, Leones).
+  djomyCurrency String
+
+  paymentMethod      String?
+  /// Numéro du payeur, chiffré au repos.
+  payerNumberChiffre String?
+
+  /// Miroir du statut Djomy : CREATED, PENDING, SUCCESS, FAILED…
+  status String @default("CREATED")
+
+  /// Dernier eventId de webhook traité — protection contre le rejeu.
+  lastEventId String?
+
+  redirectUrl String?
+  echecRaison String?
+
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  evenements DjomyWebhookEvent[]
+
+  @@index([shop, status])
+  @@index([shop, createdAt])
+}
+
+/// Journal des webhooks reçus : traçabilité et garde-fou anti-rejeu.
+model DjomyWebhookEvent {
+  id String @id @default(cuid())
+
+  eventId   String @unique
+  eventType String
+
+  paiement   DjomyPayment? @relation(fields: [paiementId], references: [id], onDelete: Cascade)
+  paiementId String?
+
+  /// Corps brut reçu, conservé pour rejeu et analyse d'incident.
+  corpsBrut String
+  traiteA   DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([eventType, createdAt])
+}

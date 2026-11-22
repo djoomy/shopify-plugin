@@ -1,0 +1,12 @@
+node_modules
+build
+.git
+.env
+.env.*
+!.env.example
+.shopify
+coverage
+docs
+verification
+*.log
+*.bak-*
