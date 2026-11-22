@@ -1,7 +1,9 @@
 # Déploiement sur un VPS : app Remix + PostgreSQL.
 #
-# L'app n'écoute que sur 127.0.0.1 : c'est le proxy HTTPS déjà en place sur
-# le serveur qui l'expose sur le sous-domaine.
+# Le proxy HTTPS du serveur (Caddy, dans Docker) joint l'app par le réseau
+# partagé `edge`, sous le nom `djomy-shopify`. Sa configuration est dans
+# deploy/caddy/djomy-shopify.caddy. Le port publié sur 127.0.0.1 ne sert
+# qu'au contrôle de santé du déploiement.
 #
 # Le fichier `.env` du serveur (jamais versionné) fournit les secrets de
 # l'app ainsi que POSTGRES_PASSWORD (openssl rand -hex 24) et, au besoin,
@@ -19,6 +21,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD manquant dans .env}
     volumes:
       - djomy-db:/var/lib/postgresql/data
+    networks:
+      default:
+        # Nom propre à ce projet : `db` pourrait désigner la base d'une autre
+        # application sur un réseau partagé.
+        aliases: [djomy-db]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U djomy -d djomy"]
       interval: 5s
@@ -36,9 +43,18 @@ services:
       # Ces valeurs priment sur celles du .env.
       NODE_ENV: production
       PORT: "3000"
-      DATABASE_URL: postgresql://djomy:${POSTGRES_PASSWORD}@db:5432/djomy
+      DATABASE_URL: postgresql://djomy:${POSTGRES_PASSWORD}@djomy-db:5432/djomy
     ports:
       - "127.0.0.1:${APP_PORT:-3100}:3000"
+    networks:
+      default:
+      edge:
+        aliases: [djomy-shopify]
+
+networks:
+  # Réseau du proxy, créé hors de ce projet (`docker network create edge`).
+  edge:
+    external: true
 
 volumes:
   djomy-db:
