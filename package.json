@@ -38,12 +38,15 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@preact/signals": "^2.11.4",
     "@remix-run/dev": "^2.15.2",
     "@shopify/cli": "^3.75.0",
+    "@shopify/ui-extensions": "2026.10.x",
     "@types/node": "^22.10.5",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitest/coverage-v8": "^2.1.8",
+    "preact": "^10.29.8",
     "prisma": "^6.2.1",
     "typescript": "^5.7.3",
     "vite": "^5.4.11",

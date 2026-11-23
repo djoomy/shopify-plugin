@@ -114,3 +114,22 @@ réseau Docker `edge`. Aucun fichier des autres applications n'est modifié.
 Sa réinstallation sans le dossier des sites importés couperait l'accès à
 l'app.
 
+## D-011 — Jeton de checkout pour relier la page de remerciement au paiement
+
+**Date :** 2026-11-23 · **Statut :** actée
+
+Le bouton « Payer maintenant » de la page de remerciement s'appuie sur le
+jeton de checkout, connu à la fois de l'extension et du webhook
+`orders/create`. L'extension construit un lien, l'app fait la correspondance.
+
+**Écarté :**
+
+- Appel `fetch` de l'extension vers l'app : capacité `network_access` à
+  demander, jeton de session à vérifier, attente du webhook à gérer côté
+  extension.
+- Lien construit sur le numéro de commande : devinable, les numéros se
+  suivent.
+
+**Conséquence :** le jeton de checkout devient un jeton d'accès à la page de
+paiement, au même titre que la référence. Cette page n'affiche que le montant.
+

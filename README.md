@@ -57,12 +57,14 @@ npm run prisma:migrate
 
 1. Le marchand crée une méthode de paiement manuelle dont le nom contient
    « Djomy » (Réglages → Paiements → Méthodes manuelles).
-2. À la commande, le webhook `orders/create` prépare un paiement et dépose le
+2. Le marchand ajoute le bloc « Paiement Djomy » à la page de remerciement,
+   depuis l'éditeur de checkout (Réglages → Paiement → Personnaliser).
+3. À la commande, le webhook `orders/create` prépare un paiement et dépose le
    lien `/pay/<référence>` en note de commande.
-3. L'acheteur ouvre ce lien, saisit son numéro, puis est redirigé vers le
-   portail Djomy.
-4. Le webhook Djomy confirme le paiement ; la commande passe en payée.
-5. Un passage de réconciliation rattrape les webhooks perdus.
+4. Sur la page de remerciement, l'acheteur clique sur « Payer maintenant »,
+   saisit son numéro, puis est redirigé vers le portail Djomy.
+5. Le webhook Djomy confirme le paiement ; la commande passe en payée.
+6. Un passage de réconciliation rattrape les webhooks perdus.
 
 L'URL de webhook à renseigner côté Djomy est affichée dans l'écran de
 configuration de l'application.

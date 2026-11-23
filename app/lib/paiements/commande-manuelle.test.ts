@@ -3,6 +3,7 @@ import {
   doitEtrePriseEnCharge,
   genererReference,
   identifiantCommande,
+  jetonCheckout,
   telephoneProbable,
   type CommandeShopify,
 } from "./commande-manuelle";
@@ -131,5 +132,32 @@ describe("telephoneProbable", () => {
 
   it("renvoie null si aucun numéro n'est disponible", () => {
     expect(telephoneProbable({})).toBeNull();
+  });
+});
+
+describe("jetonCheckout", () => {
+  it("retourne le checkout_token de la commande", () => {
+    expect(
+      jetonCheckout({ ...COMMANDE, checkout_token: "a1b2c3d4e5f60718293a4b5c6d7e8f90" }),
+    ).toBe("a1b2c3d4e5f60718293a4b5c6d7e8f90");
+  });
+
+  it("ignore les espaces autour du jeton", () => {
+    expect(
+      jetonCheckout({ ...COMMANDE, checkout_token: " a1b2c3d4e5f60718293a4b5c6d7e8f90 " }),
+    ).toBe("a1b2c3d4e5f60718293a4b5c6d7e8f90");
+  });
+
+  it("retourne null si le jeton est absent ou vide", () => {
+    expect(jetonCheckout(COMMANDE)).toBeNull();
+    expect(jetonCheckout({ ...COMMANDE, checkout_token: null })).toBeNull();
+    expect(jetonCheckout({ ...COMMANDE, checkout_token: "  " })).toBeNull();
+  });
+
+  it("rejette un jeton trop court ou au format inattendu", () => {
+    expect(jetonCheckout({ ...COMMANDE, checkout_token: "abc" })).toBeNull();
+    expect(
+      jetonCheckout({ ...COMMANDE, checkout_token: "../../etc/passwd-0000" }),
+    ).toBeNull();
   });
 });

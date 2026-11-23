@@ -122,6 +122,8 @@ export async function preparerPaiement(params: {
   amount: string;
   currency: string;
   djomyCurrency: string;
+  /** Jeton de checkout Shopify, s'il est connu : cf. route `/pay/c/<jeton>`. */
+  checkoutToken?: string | null;
 }): Promise<PaiementEnregistre> {
   const existant = await prisma.djomyPayment.findFirst({
     where: { shop: params.shop, shopifyOrderId: params.shopifyOrderId },
@@ -137,6 +139,7 @@ export async function preparerPaiement(params: {
       currency: params.currency,
       djomyCurrency: params.djomyCurrency,
       shopifyOrderId: params.shopifyOrderId,
+      shopifyCheckoutToken: params.checkoutToken ?? null,
       status: "EN_ATTENTE_SAISIE",
     },
   });

@@ -1,0 +1,15 @@
+# Lien « Payer maintenant » sur la page de remerciement.
+#
+# Le marchand ajoute ce bloc depuis l'éditeur de checkout de sa boutique,
+# sur la page de remerciement.
+
+api_version = "2026-10"
+
+[[extensions]]
+name = "Paiement Djomy"
+handle = "djomy-payer"
+type = "ui_extension"
+
+  [[extensions.targeting]]
+  module = "./src/Remerciement.jsx"
+  target = "purchase.thank-you.block.render"

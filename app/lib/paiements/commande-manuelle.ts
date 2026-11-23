@@ -18,6 +18,7 @@ export interface CommandeShopify {
   financial_status?: string | null;
   total_price?: string | null;
   currency?: string | null;
+  checkout_token?: string | null;
   phone?: string | null;
   customer?: { phone?: string | null } | null;
   billing_address?: { phone?: string | null } | null;
@@ -72,4 +73,20 @@ export function telephoneProbable(commande: CommandeShopify): string | null {
     commande.shipping_address?.phone,
   ];
   return candidats.find((valeur) => Boolean(valeur?.trim())) ?? null;
+}
+
+const FORMAT_JETON = /^[A-Za-z0-9_-]{16,128}$/;
+
+/** Vrai si la valeur a la forme d'un jeton de checkout Shopify. */
+export function estJetonCheckout(valeur: string): boolean {
+  return FORMAT_JETON.test(valeur);
+}
+
+/**
+ * Jeton de checkout de la commande. Shopify le fournit aussi à la page de
+ * remerciement : il relie donc cette page au paiement, sans être devinable.
+ */
+export function jetonCheckout(commande: CommandeShopify): string | null {
+  const jeton = (commande.checkout_token ?? "").trim();
+  return estJetonCheckout(jeton) ? jeton : null;
 }

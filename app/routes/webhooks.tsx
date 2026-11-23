@@ -7,6 +7,7 @@ import {
   doitEtrePriseEnCharge,
   genererReference,
   identifiantCommande,
+  jetonCheckout,
   type CommandeShopify,
 } from "../lib/paiements/commande-manuelle";
 import { preparerPaiement } from "../lib/paiements/depot.server";
@@ -101,6 +102,7 @@ async function prendreEnCharge(shop: string, commande: CommandeShopify): Promise
     amount: montant,
     currency: devise.toUpperCase(),
     djomyCurrency,
+    checkoutToken: jetonCheckout(commande),
   });
 
   const lien = `${process.env.SHOPIFY_APP_URL ?? ""}/pay/${paiement.merchantPaymentReference}`;

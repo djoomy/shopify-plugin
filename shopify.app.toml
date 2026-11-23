@@ -22,14 +22,13 @@ api_version = "2026-10"
 
   [[webhooks.subscriptions]]
   uri = "/webhooks"
-  topics = [
-  "app/uninstalled",
-  "orders/create",
-  "customers/data_request",
-  "customers/redact",
-  "shop/redact"
-]
+  topics = [ "app/uninstalled", "orders/create" ]
+
+  # Sujets de conformité (RGPD) : ils se déclarent dans `compliance_topics`,
+  # pas dans `topics`.
+  [[webhooks.subscriptions]]
+  uri = "/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
 [build]
-include_config_on_deploy = true
 automatically_update_urls_on_dev = true

@@ -52,6 +52,8 @@ model DjomyPayment {
   shopifyOrderId    String?
   /// GID de la session de paiement Shopify, pour le canal offsite.
   shopifySessionGid String? @unique
+  /// Jeton de checkout Shopify : relie la page de remerciement au paiement.
+  shopifyCheckoutToken String? @unique
 
   /// Référence marchand : clé d'idempotence côté Djomy comme côté app.
   merchantPaymentReference String  @unique

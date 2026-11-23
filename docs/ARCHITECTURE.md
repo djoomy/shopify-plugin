@@ -112,6 +112,28 @@ Exigé par Shopify pour le canal offsite (phase P4). À configurer sur
 l'hébergement retenu avec le certificat CA Shopify. Non requis pour le canal
 manuel.
 
+## Lien de paiement sur la page de remerciement
+
+Avec un moyen de paiement manuel, Shopify ne redirige pas l'acheteur. Une
+extension de checkout (`extensions/djomy-payer`, cible
+`purchase.thank-you.block.render`) affiche donc un bouton « Payer
+maintenant » sur la page de remerciement.
+
+1. Le webhook `orders/create` enregistre le `checkout_token` de la commande
+   dans `DjomyPayment.shopifyCheckoutToken`.
+2. L'extension lit le même jeton (`shopify.checkoutToken`) et pointe vers
+   `/pay/c/<jeton>`. Elle ne fait aucun appel réseau.
+3. La route `app/routes/pay.c.$jeton.tsx` retrouve le paiement et redirige
+   vers `/pay/<référence>`. Si le webhook n'est pas encore arrivé, elle
+   patiente : dix rechargements espacés de trois secondes, puis un message.
+
+Shopify n'expose pas le nom du moyen de paiement à l'extension, seulement son
+type : le bouton s'affiche pour tout paiement manuel. Le lien déposé en note
+de commande reste en place.
+
+L'adresse de l'app est une constante de `Remerciement.jsx` : la modifier
+impose un nouveau `npm run deploy`.
+
 ## Hébergement et déploiement
 
 Production : `https://djomy.ousmanebellasarl.com`, sur un VPS partagé

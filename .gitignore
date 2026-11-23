@@ -13,3 +13,7 @@ coverage
 .DS_Store
 *.log
 verification/captures/
+
+# Sorties de compilation des extensions Shopify
+extensions/*/dist
+extensions/*/manifest.json

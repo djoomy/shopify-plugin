@@ -1,5 +1,26 @@
 # Journal des modifications
 
+## 2026-11-23 — Bouton « Payer maintenant » sur la page de remerciement
+
+### Ajouté
+
+- Extension de checkout `extensions/djomy-payer` (page de remerciement).
+- Route `/pay/c/<jeton>` : accès à la page de paiement par le jeton de
+  checkout, avec page d'attente.
+- Colonne `DjomyPayment.shopifyCheckoutToken` (migration `1_checkout_token`).
+
+### Modifié
+
+- Le webhook `orders/create` enregistre le jeton de checkout de la commande.
+- `shopify.app.toml` : sujets de conformité déclarés dans
+  `compliance_topics`.
+
+### Vérifié
+
+- 226 tests unitaires verts ; extension compilée par `shopify app build`.
+- En local : webhook signé, enregistrement du jeton, redirection, page
+  d'attente, rejet d'un jeton mal formé.
+
 ## 2026-11-22 — Mise en production sur le VPS
 
 ### Ajouté
