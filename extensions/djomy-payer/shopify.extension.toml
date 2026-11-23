@@ -4,6 +4,7 @@
 # sur la page de remerciement.
 
 api_version = "2026-10"
+uid = "fbeb0630-e723-874f-ee38-aa10ef3017066b3bd63f"
 
 [[extensions]]
 name = "Paiement Djomy"
