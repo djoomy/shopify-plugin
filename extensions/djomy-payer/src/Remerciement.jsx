@@ -1,3 +1,7 @@
+/** @jsxImportSource preact */
+// La ligne ci-dessus est indispensable : sans elle, le JSX est compilé pour
+// React (réglage du tsconfig racine, celui de l'app Remix) et le bloc ne
+// s'affiche pas.
 import "@shopify/ui-extensions/preact";
 import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
